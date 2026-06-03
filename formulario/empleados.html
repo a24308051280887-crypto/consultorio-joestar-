@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Control de Empleados - Médicos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            background-color: #fafafa;
+        }
+
+        .btn-inicio {
+            background-color: #f57f17;
+            color: white;
+            padding: 8px 15px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        table {
+            border-collapse: collapse;
+            background-color: white;
+            width: auto;
+            height: max-content;
+        }
+
+        th, td {
+            border: 1px solid #fff59d; 
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #fbc02d; 
+            color: black;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #fffde7;
+        }
+
+        .contenedor {
+            display: flex;
+            gap: 20px;
+        }
+
+        .formulario {
+            width: 280px; 
+            background-color: white;
+            padding: 15px;
+            border: 1px solid #fff59d;
+            border-radius: 4px;
+        }
+
+        .formulario label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .formulario input {
+            width: 100%;
+            padding: 6px;
+            margin-top: 5px;
+            border: 1px solid #fff59d;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .btn-agregar {
+            background-color: #fbc02d;
+            color: black;
+            border: none;
+            padding: 10px;
+            margin-top: 15px;
+            width: 100%;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <a href="index.html" class="btn-inicio">Inicio</a>
+
+    <h1>Control de Empleados (Médicos - Doctores)</h1>
+
+    <div class="contenedor">
+        
+        <div class="formulario">
+            <h3>Nuevo Médico</h3>
+            <form id="formMedico">
+                <label>ID:</label>
+                <input type="text" id="idMedico" placeholder="Ej: M001">
+
+                <label>Nombre y Apellido:</label>
+                <input type="text" id="nombre" placeholder="Ej: Carlos ramirez">
+
+                <label>Especialidad:</label>
+                <input type="text" id="especialidad" placeholder="Ej: General">
+
+                <label>NC:</label>
+                <input type="text" id="nc" placeholder="Ej: 1234567">
+
+                <label>Dirección:</label>
+                <input type="text" id="direccion" placeholder="Ej: Benito Juarez 38">
+
+                <label>Teléfono:</label>
+                <input type="text" id="telefono" placeholder="Ej: 656-1234567">
+
+                <label>CURP:</label>
+                <input type="text" id="curp" placeholder="Ej: CM0887NCD1">
+
+                <label>Horario:</label>
+                <input type="text" id="horario" placeholder="Ej: 6am - 3pm">
+
+                <button type="button" class="btn-agregar" onclick="agregarFila()">Agregar</button>
+            </form>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre y Apellido</th>
+                    <th>Especialidad</th>
+                    <th>NC</th>
+                    <th>Dirección</th>
+                    <th>Teléfono</th>
+                    <th>CURP</th>
+                    <th>Horario</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoTabla">
+            </tbody>
+        </table>
+
+    </div>
+
+    <script>
+        function agregarFila() {
+            var idMedico = document.getElementById("idMedico").value;
+            var nombre = document.getElementById("nombre").value;
+            var especialidad = document.getElementById("especialidad").value;
+            var nc = document.getElementById("nc").value;
+            var direccion = document.getElementById("direccion").value;
+            var telefono = document.getElementById("telefono").value;
+            var curp = document.getElementById("curp").value;
+            var horario = document.getElementById("horario").value;
+
+            var tabla = document.getElementById("cuerpoTabla");
+
+            var nuevaFila = "<tr>" +
+                                "<td>" + idMedico + "</td>" +
+                                "<td>" + nombre + "</td>" +
+                                "<td>" + especialidad + "</td>" +
+                                "<td>" + nc + "</td>" +
+                                "<td>" + direccion + "</td>" +
+                                "<td>" + telefono + "</td>" +
+                                "<td>" + curp + "</td>" +
+                                "<td>" + horario + "</td>" +
+                            "</tr>";
+
+            tabla.innerHTML = tabla.innerHTML + nuevaFila;
+
+            document.getElementById("formMedico").reset();
+        }
+    </script>
+
+</body>
+</html>

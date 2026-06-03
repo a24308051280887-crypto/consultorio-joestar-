@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Control de Citas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            background-color: #fafafa;
+        }
+
+        .btn-inicio {
+            background-color: #0056b3; 
+            color: white;
+            padding: 8px 15px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        /* AQUÍ ESTÁ EL CAMBIO: quitamos el 70% para que crezca poco a poco */
+        table {
+            border-collapse: collapse;
+            background-color: white;
+            width: auto; /* Solo ocupa el espacio de los datos reales */
+            height: max-content;
+        }
+
+        th, td {
+            border: 1px solid #b3d7ff; 
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #007bff; 
+            color: white; 
+        }
+
+        tr:nth-child(even) {
+            background-color: #f0f7ff;
+        }
+
+        .contenedor {
+            display: flex;
+            gap: 20px;
+        }
+
+        /* Formulario con tamaño fijo para que no se deforme */
+        .formulario {
+            width: 280px; 
+            background-color: white;
+            padding: 15px;
+            border: 1px solid #b3d7ff;
+            border-radius: 4px;
+        }
+
+        .formulario label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .formulario input, .formulario select {
+            width: 100%;
+            padding: 6px;
+            margin-top: 5px;
+            border: 1px solid #b3d7ff;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .btn-agregar {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px;
+            margin-top: 15px;
+            width: 100%;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <a href="index.html" class="btn-inicio">Inicio</a>
+
+    <h1>Control de Citas</h1>
+
+    <div class="contenedor">
+        
+        <div class="formulario">
+            <h3>Nueva Cita</h3>
+            <form id="formCita">
+                <label>ID Cita:</label>
+                <input type="text" id="idCita" placeholder="Ej: C1">
+
+                <label>ID Paciente:</label>
+                <input type="text" id="idPaciente" placeholder="Ej: 00001">
+
+                <label>Nombre Paciente:</label>
+                <input type="text" id="nombre" placeholder="Ej: Jose">
+
+                <label>ID Médico:</label>
+                <input type="text" id="idMedico" placeholder="Ej: M001">
+
+                <label>Fecha:</label>
+                <input type="text" id="fecha" placeholder="Ej: 01/02/26">
+
+                <label>Hora:</label>
+                <input type="text" id="hora" placeholder="Ej: 7:00">
+
+                <label>Motivo:</label>
+                <input type="text" id="motivo" placeholder="Ej: Gripe">
+
+                <label>Estado:</label>
+                <select id="estado">
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="Completa">Completa</option>
+                    <option value="Faltante">Faltante</option>
+                </select>
+
+                <button type="button" class="btn-agregar" onclick="agregarFila()">Agregar</button>
+            </form>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID Cita</th>
+                    <th>ID Paciente</th>
+                    <th>Nombre Paciente</th>
+                    <th>ID Médico</th>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Motivo</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoTabla">
+                </tbody>
+        </table>
+
+    </div>
+
+    <script>
+        function agregarFila() {
+            var idCita = document.getElementById("idCita").value;
+            var idPaciente = document.getElementById("idPaciente").value;
+            var nombre = document.getElementById("nombre").value;
+            var idMedico = document.getElementById("idMedico").value;
+            var fecha = document.getElementById("fecha").value;
+            var hora = document.getElementById("hora").value;
+            var motivo = document.getElementById("motivo").value;
+            var estado = document.getElementById("estado").value;
+
+            var tabla = document.getElementById("cuerpoTabla");
+
+            var nuevaFila = "<tr>" +
+                                "<td>" + idCita + "</td>" +
+                                "<td>" + idPaciente + "</td>" +
+                                "<td>" + nombre + "</td>" +
+                                "<td>" + idMedico + "</td>" +
+                                "<td>" + fecha + "</td>" +
+                                "<td>" + hora + "</td>" +
+                                "<td>" + motivo + "</td>" +
+                                "<td>" + estado + "</td>" +
+                            "</tr>";
+
+            tabla.innerHTML = tabla.innerHTML + nuevaFila;
+
+            document.getElementById("formCita").reset();
+        }
+    </script>
+
+</body>
+</html>
