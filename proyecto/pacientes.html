@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Pacientes - Consultorio Joestar</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <img src="img/jojo.png" alt="Logo Consultorio" width="120">
+        <h1>CONSULTORIO JOESTAR</h1>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="joestar.html">Inicio</a></li>
+            <li><a href="empleados.html">Personal Médico</a></li>
+            <li><a href="pacientes.html" class="active">Pacientes</a></li>
+            <li><a href="citas.html">Agenda de Citas</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <section class="crud-section">
+            <h2>Pacientes</h2>
+            <p>Lista de pacientes atendidos en el consultorio y su estado actual.</p>
+
+            <form id="paciente-form" class="crud-form">
+                <input type="hidden" id="paciente-id">
+                <div class="campo">
+                    <label for="nombre">Nombre</label>
+                    <input id="nombre" type="text" required>
+                </div>
+                <div class="campo">
+                    <label for="apellido">Apellido</label>
+                    <input id="apellido" type="text" required>
+                </div>
+                <div class="campo">
+                    <label for="edad">Edad</label>
+                    <input id="edad" type="number" min="0" required>
+                </div>
+                <div class="campo">
+                    <label for="sexo">Sexo</label>
+                    <select id="sexo" required>
+                        <option value="Masculino">Masculino</option>
+                        <option value="Femenino">Femenino</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+                <div class="campo">
+                    <label for="telefono">Teléfono</label>
+                    <input id="telefono" type="tel" required>
+                </div>
+                <div class="campo">
+                    <label for="correo">Correo</label>
+                    <input id="correo" type="email" required>
+                </div>
+                <div class="campo">
+                    <label for="direccion">Dirección</label>
+                    <input id="direccion" type="text" required>
+                </div>
+                <div class="campo">
+                    <label for="tipo_sangre">Tipo de sangre</label>
+                    <input id="tipo_sangre" type="text" required>
+                </div>
+                <div class="campo">
+                    <label for="diagnostico">Diagnóstico</label>
+                    <input id="diagnostico" type="text" required>
+                </div>
+                <div class="campo">
+                    <label for="estatus">Estatus</label>
+                    <select id="estatus">
+                        <option value="Activo">Activo</option>
+                        <option value="Inactivo">Inactivo</option>
+                        <option value="Pendiente">Pendiente</option>
+                    </select>
+                </div>
+                <div class="modal-btns">
+                    <button type="submit" class="btn-guardar">Guardar paciente</button>
+                    <button type="button" class="btn-cancelar" id="cancelar-edicion">Cancelar</button>
+                </div>
+            </form>
+
+            <div style="margin:12px 0;">
+                <input type="text" id="searchInputPacientes" placeholder="Filtrar pacientes...">
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Apellido</th>
+                            <th>Edad</th>
+                            <th>Sexo</th>
+                            <th>Teléfono</th>
+                            <th>Correo</th>
+                            <th>Dirección</th>
+                            <th>Tipo de sangre</th>
+                            <th>Diagnóstico</th>
+                            <th>Estatus</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pacientes-body"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p><strong>Logo del Negocio:</strong> Consultorio Joestar</p>
+        <p><strong>Alumno:</strong> Rodriguez Martinez Oliver Orlando</p>
+        <p><strong>No. de Control:</strong> 0887</p>
+        <p><strong>Semestre:</strong> 4to Semestre</p>
+        <p><strong>Grupo:</strong> "J"</p>
+        <p><strong>Submódulo:</strong> Bases de Datos No Relacionales</p>
+    </footer>
+
+    <script>
+        const API_URL_PACIENTES = '/api/pacientes';
+        const formPacientes = document.getElementById('paciente-form');
+        const bodyPacientes = document.getElementById('pacientes-body');
+        const inputId = document.getElementById('paciente-id');
+        const botonLimpiar = document.getElementById('cancelar-edicion');
+        const inputBuscador = document.getElementById('searchInputPacientes');
+
+        function listarPacientes() {
+            fetch(API_URL_PACIENTES)
+                .then(res => res.json())
+                .then(data => {
+                    bodyPacientes.innerHTML = '';
+                    if (data.length === 0) {
+                        bodyPacientes.innerHTML = '<tr><td colspan="11">No hay pacientes registrados</td></tr>';
+                        return;
+                    }
+                    data.forEach(p => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${p.nombre || ''}</td>
+                            <td>${p.apellido || ''}</td>
+                            <td>${p.edad || ''}</td>
+                            <td>${p.sexo || ''}</td>
+                            <td>${p.telefono || ''}</td>
+                            <td>${p.correo || ''}</td>
+                            <td>${p.direccion || ''}</td>
+                            <td>${p.tipo_sangre || ''}</td>
+                            <td>${p.diagnostico || ''}</td>
+                            <td>${p.estatus || ''}</td>
+                            <td>
+                                <button class="btn-editar" onclick="editarPaciente('${p._id}')">Editar</button>
+                                <button class="btn-eliminar" onclick="eliminarPaciente('${p._id}')">Eliminar</button>
+                            </td>
+                        `;
+                        bodyPacientes.appendChild(tr);
+                    });
+                })
+                .catch(err => console.error(err));
+        }
+
+        function resetearForm() {
+            inputId.value = '';
+            formPacientes.reset();
+        }
+
+        formPacientes.addEventListener('submit', e => {
+            e.preventDefault();
+            const payload = {
+                nombre: document.getElementById('nombre').value,
+                apellido: document.getElementById('apellido').value,
+                edad: document.getElementById('edad').value,
+                sexo: document.getElementById('sexo').value,
+                telefono: document.getElementById('telefono').value,
+                correo: document.getElementById('correo').value,
+                direccion: document.getElementById('direccion').value,
+                tipo_sangre: document.getElementById('tipo_sangre').value,
+                diagnostico: document.getElementById('diagnostico').value,
+                estatus: document.getElementById('estatus').value
+            };
+
+            const id = inputId.value;
+            if (id) {
+                fetch(`${API_URL_PACIENTES}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).then(() => {
+                    lanzarToast('Paciente actualizado');
+                    resetearForm();
+                    listarPacientes();
+                });
+            } else {
+                fetch(API_URL_PACIENTES, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).then(() => {
+                    lanzarToast('Paciente agregado');
+                    resetearForm();
+                    listarPacientes();
+                });
+            }
+        });
+
+        window.eliminarPaciente = function(id) {
+            const pwd = prompt('Ingrese contraseña de Administrador (Stand) para eliminar:');
+            if (pwd !== 'dio') return alert('Acceso denegado: Contraseña incorrecta.');
+
+            if (confirm('¿Eliminar registro?')) {
+                fetch(`${API_URL_PACIENTES}/${id}`, { method: 'DELETE' })
+                    .then(() => {
+                        lanzarToast('Paciente eliminado');
+                        listarPacientes();
+                    });
+            }
+        };
+
+        window.editarPaciente = function(id) {
+            const pwd = prompt('Ingrese contraseña de Administrador (Stand) para editar:');
+            if (pwd !== 'dio') return alert('Acceso denegado: Contraseña incorrecta.');
+
+            fetch(API_URL_PACIENTES)
+                .then(res => res.json())
+                .then(data => {
+                    const obj = data.find(item => item._id === id);
+                    if (obj) {
+                        inputId.value = obj._id;
+                        document.getElementById('nombre').value = obj.nombre;
+                        document.getElementById('apellido').value = obj.apellido;
+                        document.getElementById('edad').value = obj.edad;
+                        document.getElementById('sexo').value = obj.sexo;
+                        document.getElementById('telefono').value = obj.telefono;
+                        document.getElementById('correo').value = obj.correo;
+                        document.getElementById('direccion').value = obj.direccion;
+                        document.getElementById('tipo_sangre').value = obj.tipo_sangre;
+                        document.getElementById('diagnostico').value = obj.diagnostico;
+                        document.getElementById('estatus').value = obj.estatus;
+                    }
+                });
+        };
+
+        botonLimpiar.addEventListener('click', resetearForm);
+
+        inputBuscador.addEventListener('input', () => {
+            const f = inputBuscador.value.toLowerCase();
+            const rows = bodyPacientes.getElementsByTagName('tr');
+            for (let r of rows) {
+                r.style.display = r.innerText.toLowerCase().includes(f) ? '' : 'none';
+            }
+        });
+
+        function lanzarToast(msj) {
+            let t = document.getElementById('toast');
+            if (!t) {
+                t = document.createElement('div');
+                t.id = 'toast';
+                document.body.appendChild(t);
+            }
+            t.innerText = msj;
+            t.classList.add('mostrar');
+            setTimeout(() => t.classList.remove('mostrar'), 3000);
+        }
+
+        listarPacientes();
+    </script>
+</body>
+</html>

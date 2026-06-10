@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Personal Médico - Consultorio Joestar</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <img src="img/jojo.png" alt="Logo Consultorio" width="120">
+        <h1>CONSULTORIO JOESTAR</h1>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="joestar.html">Inicio</a></li>
+            <li><a href="empleados.html" class="active">Personal Médico</a></li>
+            <li><a href="pacientes.html">Pacientes</a></li>
+            <li><a href="citas.html">Agenda de Citas</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <section class="crud-section">
+            <h2>Personal Médico</h2>
+            <p>Gestiona los médicos y especialistas registrados para atención.</p>
+
+            <form id="empleado-form" class="crud-form">
+                <input type="hidden" id="empleado-id">
+                <div class="campo">
+                    <label for="nombre">Nombre</label>
+                    <input id="nombre" type="text" required>
+                </div>
+                <div class="campo">
+                    <label for="especialidad">Especialidad</label>
+                    <input id="especialidad" type="text" required>
+                </div>
+                <div class="campo">
+                    <label for="turno">Turno</label>
+                    <select id="turno" required>
+                        <option value="Matutino">Matutino</option>
+                        <option value="Vespertino">Vespertino</option>
+                        <option value="Nocturno">Nocturno</option>
+                    </select>
+                </div>
+                <div class="campo">
+                    <label for="correo">Correo</label>
+                    <input id="correo" type="email" required>
+                </div>
+                <div class="campo">
+                    <label for="telefono">Teléfono</label>
+                    <input id="telefono" type="tel" required>
+                </div>
+                <div class="campo">
+                    <label for="estatus">Estatus</label>
+                    <select id="estatus">
+                        <option value="Activo">Activo</option>
+                        <option value="Inactivo">Inactivo</option>
+                    </select>
+                </div>
+                <div class="modal-btns">
+                    <button type="submit" class="btn-guardar">Guardar médico</button>
+                    <button type="button" class="btn-cancelar" id="cancelar-edicion">Cancelar</button>
+                </div>
+            </form>
+
+            <div style="margin:12px 0;">
+                <input type="text" id="searchInputEmpleados" placeholder="Filtrar empleados...">
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Especialidad</th>
+                            <th>Turno</th>
+                            <th>Correo</th>
+                            <th>Teléfono</th>
+                            <th>Estatus</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="empleados-body"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p><strong>Logo del Negocio:</strong> Consultorio Joestar</p>
+        <p><strong>Alumno:</strong> Rodriguez Martinez Oliver Orlando</p>
+        <p><strong>No. de Control:</strong> 0887</p>
+        <p><strong>Semestre:</strong> 4to Semestre</p>
+        <p><strong>Grupo:</strong> "J"</p>
+        <p><strong>Submódulo:</strong> Bases de Datos No Relacionales</p>
+    </footer>
+
+    <script>
+        const RUTA_API = '/api/empleados';
+        const formPersonal = document.getElementById('empleado-form');
+        const cuerpoTabla = document.getElementById('empleados-body');
+        const idActual = document.getElementById('empleado-id');
+        const botonCancelar = document.getElementById('cancelar-edicion');
+        const cajaBusqueda = document.getElementById('searchInputEmpleados');
+
+        function cargarPersonal() {
+            fetch(RUTA_API)
+                .then(respuesta => respuesta.json())
+                .then(datos => {
+                    cuerpoTabla.innerHTML = '';
+                    if (datos.length === 0) {
+                        cuerpoTabla.innerHTML = '<tr><td colspan="7">Sin personal registrado</td></tr>';
+                        return;
+                    }
+                    datos.forEach(medico => {
+                        const fila = document.createElement('tr');
+                        fila.innerHTML = `
+                            <td>${medico.nombre || ''}</td>
+                            <td>${medico.especialidad || ''}</td>
+                            <td>${medico.turno || ''}</td>
+                            <td>${medico.correo || ''}</td>
+                            <td>${medico.telefono || ''}</td>
+                            <td>${medico.estatus || ''}</td>
+                            <td>
+                                <button class="btn-editar" type="button" onclick="prepararEdicion('${medico._id}')">Editar</button>
+                                <button class="btn-eliminar" type="button" onclick="borrarRegistro('${medico._id}')">Eliminar</button>
+                            </td>
+                        `;
+                        cuerpoTabla.appendChild(fila);
+                    });
+                })
+                .catch(error => console.error('Error cargando personal', error));
+        }
+
+        function limpiarFormulario() {
+            idActual.value = '';
+            formPersonal.reset();
+        }
+
+        formPersonal.addEventListener('submit', evento => {
+            evento.preventDefault();
+            const informacion = {
+                nombre: document.getElementById('nombre').value,
+                especialidad: document.getElementById('especialidad').value,
+                turno: document.getElementById('turno').value,
+                correo: document.getElementById('correo').value,
+                telefono: document.getElementById('telefono').value,
+                estatus: document.getElementById('estatus').value
+            };
+
+            const id = idActual.value;
+            if (id) {
+                fetch(`${RUTA_API}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(informacion)
+                })
+                .then(() => {
+                    mostrarAviso('Datos del médico actualizados');
+                    limpiarFormulario();
+                    cargarPersonal();
+                });
+            } else {
+                fetch(RUTA_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(informacion)
+                })
+                .then(() => {
+                    mostrarAviso('Médico agregado exitosamente');
+                    limpiarFormulario();
+                    cargarPersonal();
+                });
+            }
+        });
+
+        function borrarRegistro(id) {
+            const pwd = prompt('Ingrese contraseña de Administrador (Stand) para eliminar:');
+            if (pwd !== 'dio') return alert('Acceso denegado: Contraseña incorrecta.');
+            
+            if (confirm('¿Seguro que deseas eliminar a este empleado?')) {
+                fetch(`${RUTA_API}/${id}`, { method: 'DELETE' })
+                    .then(() => {
+                        mostrarAviso('Empleado eliminado del sistema');
+                        cargarPersonal();
+                    });
+            }
+        }
+
+        window.prepararEdicion = function(id) {
+            const pwd = prompt('Ingrese contraseña de Administrador (Stand) para editar:');
+            if (pwd !== 'dio') return alert('Acceso denegado: Contraseña incorrecta.');
+
+            fetch(RUTA_API)
+                .then(res => res.json())
+                .then(datos => {
+                    const medico = datos.find(d => d._id === id);
+                    if (medico) {
+                        idActual.value = medico._id;
+                        document.getElementById('nombre').value = medico.nombre;
+                        document.getElementById('especialidad').value = medico.especialidad;
+                        document.getElementById('turno').value = medico.turno;
+                        document.getElementById('correo').value = medico.correo;
+                        document.getElementById('telefono').value = medico.telefono;
+                        document.getElementById('estatus').value = medico.estatus;
+                    }
+                });
+        };
+
+        window.borrarRegistro = borrarRegistro;
+
+        botonCancelar.addEventListener('click', limpiarFormulario);
+
+        cajaBusqueda.addEventListener('input', () => {
+            const filtro = cajaBusqueda.value.toLowerCase();
+            const filas = cuerpoTabla.getElementsByTagName('tr');
+            for (let f of filas) {
+                f.style.display = f.textContent.toLowerCase().includes(filtro) ? '' : 'none';
+            }
+        });
+
+        function mostrarAviso(mensaje) {
+            let toast = document.getElementById('toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'toast';
+                document.body.appendChild(toast);
+            }
+            toast.textContent = mensaje;
+            toast.classList.add('mostrar');
+            setTimeout(() => toast.classList.remove('mostrar'), 3000);
+        }
+
+        cargarPersonal();
+    </script>
+</body>
+</html>

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Citas - Consultorio Joestar</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <img src="img/jojo.png" alt="Logo Consultorio" width="120">
+        <h1>CONSULTORIO JOESTAR</h1>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="joestar.html">Inicio</a></li>
+            <li><a href="empleados.html">Personal Médico</a></li>
+            <li><a href="pacientes.html">Pacientes</a></li>
+            <li><a href="citas.html" class="active">Agenda de Citas</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <section class="crud-section">
+            <h2>Agenda de Citas</h2>
+            <p>Gestiona las citas programadas, el estado y el médico asignado.</p>
+
+            <form id="cita-form" class="crud-form">
+                <input type="hidden" id="cita-id">
+                <div class="campo">
+                    <label for="fecha">Fecha</label>
+                    <input id="fecha" type="date" required>
+                </div>
+                <div class="campo">
+                    <label for="hora">Hora</label>
+                    <input id="hora" type="time" required>
+                </div>
+                <div class="campo">
+                    <label for="paciente">Paciente</label>
+                    <select id="paciente" required></select>
+                </div>
+                <div class="campo">
+                    <label for="medico">Médico</label>
+                    <select id="medico" required></select>
+                </div>
+                <div class="campo">
+                    <label for="motivo">Motivo</label>
+                    <input id="motivo" type="text" required>
+                </div>
+                <div class="campo">
+                    <label for="estatus">Estatus</label>
+                    <select id="estatus">
+                        <option value="Confirmada">Confirmada</option>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Completada">Completada</option>
+                    </select>
+                </div>
+                <div class="modal-btns">
+                    <button type="submit" class="btn-guardar">Guardar cita</button>
+                    <button type="button" class="btn-cancelar" id="cancelar-edicion">Cancelar</button>
+                </div>
+            </form>
+
+            <div style="margin:12px 0;">
+                <input type="text" id="searchInputCitas" placeholder="Filtrar citas...">
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Hora</th>
+                            <th>Paciente</th>
+                            <th>Médico</th>
+                            <th>Motivo</th>
+                            <th>Estatus</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="citas-body"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p><strong>Logo del Negocio:</strong> Consultorio Joestar</p>
+        <p><strong>Alumno:</strong> Rodriguez Martinez Oliver Orlando</p>
+        <p><strong>No. de Control:</strong> 0887</p>
+        <p><strong>Semestre:</strong> 4to Semestre</p>
+        <p><strong>Grupo:</strong> "J"</p>
+        <p><strong>Submódulo:</strong> Bases de Datos No Relacionales</p>
+    </footer>
+
+    <script>
+        const API_CITAS = '/api/citas';
+        const formCitas = document.getElementById('cita-form');
+        const bodyCitas = document.getElementById('citas-body');
+        const idActual = document.getElementById('cita-id');
+        const btnCancelar = document.getElementById('cancelar-edicion');
+        const buscador = document.getElementById('searchInputCitas');
+        
+        const comboPaciente = document.getElementById('paciente');
+        const comboMedico = document.getElementById('medico');
+
+        function poblarSelects() {
+            fetch('/api/pacientes')
+                .then(r => r.json())
+                .then(pacientes => {
+                    comboPaciente.innerHTML = '';
+                    pacientes.forEach(p => {
+                        const opt = document.createElement('option');
+                        opt.value = p._id;
+                        opt.textContent = p.nombre + ' ' + p.apellido;
+                        comboPaciente.appendChild(opt);
+                    });
+                });
+            fetch('/api/empleados')
+                .then(r => r.json())
+                .then(medicos => {
+                    comboMedico.innerHTML = '';
+                    medicos.forEach(m => {
+                        const opt = document.createElement('option');
+                        opt.value = m._id;
+                        opt.textContent = m.nombre;
+                        comboMedico.appendChild(opt);
+                    });
+                });
+        }
+
+        function obtenerCitas() {
+            fetch(API_CITAS)
+                .then(r => r.json())
+                .then(citas => {
+                    bodyCitas.innerHTML = '';
+                    if (citas.length === 0) {
+                        bodyCitas.innerHTML = '<tr><td colspan="7">No hay citas registradas.</td></tr>';
+                        return;
+                    }
+                    citas.forEach(c => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${c.fecha || ''}</td>
+                            <td>${c.hora || ''}</td>
+                            <td>${c.paciente_nombre || ''}</td>
+                            <td>${c.medico_nombre || ''}</td>
+                            <td>${c.motivo || ''}</td>
+                            <td>${c.estatus || ''}</td>
+                            <td>
+                                <button class="btn-editar" onclick="editarCita('${c._id}')">Editar</button>
+                                <button class="btn-eliminar" onclick="borrarCita('${c._id}')">Eliminar</button>
+                            </td>
+                        `;
+                        bodyCitas.appendChild(tr);
+                    });
+                });
+        }
+
+        formCitas.addEventListener('submit', e => {
+            e.preventDefault();
+            const pacSelect = comboPaciente.options[comboPaciente.selectedIndex];
+            const medSelect = comboMedico.options[comboMedico.selectedIndex];
+            
+            const info = {
+                fecha: document.getElementById('fecha').value,
+                hora: document.getElementById('hora').value,
+                paciente_id: comboPaciente.value,
+                paciente_nombre: pacSelect ? pacSelect.textContent : '',
+                medico_id: comboMedico.value,
+                medico_nombre: medSelect ? medSelect.textContent : '',
+                motivo: document.getElementById('motivo').value,
+                estatus: document.getElementById('estatus').value
+            };
+
+            if (idActual.value) {
+                fetch(`${API_CITAS}/${idActual.value}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(info)
+                }).then(() => {
+                    notificar('Cita modificada exitosamente');
+                    limpiar();
+                    obtenerCitas();
+                });
+            } else {
+                fetch(API_CITAS, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(info)
+                }).then(() => {
+                    notificar('Cita agendada exitosamente');
+                    limpiar();
+                    obtenerCitas();
+                });
+            }
+        });
+
+        window.borrarCita = function(id) {
+            const pwd = prompt('Ingrese contraseña de Administrador (Stand) para cancelar:');
+            if (pwd !== 'dio') return alert('Acceso denegado: Contraseña incorrecta.');
+
+            if(confirm('¿Desea cancelar esta cita?')) {
+                fetch(`${API_CITAS}/${id}`, { method: 'DELETE' }).then(() => {
+                    notificar('Cita cancelada y eliminada');
+                    obtenerCitas();
+                });
+            }
+        };
+
+        window.editarCita = function(id) {
+            const pwd = prompt('Ingrese contraseña de Administrador (Stand) para editar:');
+            if (pwd !== 'dio') return alert('Acceso denegado: Contraseña incorrecta.');
+
+            fetch(API_CITAS)
+                .then(r => r.json())
+                .then(citas => {
+                    const c = citas.find(x => x._id === id);
+                    if (c) {
+                        idActual.value = c._id;
+                        document.getElementById('fecha').value = c.fecha;
+                        document.getElementById('hora').value = c.hora;
+                        comboPaciente.value = c.paciente_id;
+                        comboMedico.value = c.medico_id;
+                        document.getElementById('motivo').value = c.motivo;
+                        document.getElementById('estatus').value = c.estatus;
+                    }
+                });
+        };
+
+        function limpiar() {
+            idActual.value = '';
+            formCitas.reset();
+        }
+        btnCancelar.addEventListener('click', limpiar);
+
+        buscador.addEventListener('input', () => {
+            const f = buscador.value.toLowerCase();
+            const rows = bodyCitas.getElementsByTagName('tr');
+            for (let r of rows) {
+                r.style.display = r.innerText.toLowerCase().includes(f) ? '' : 'none';
+            }
+        });
+
+        function notificar(msg) {
+            let t = document.getElementById('toast');
+            if(!t) { t = document.createElement('div'); t.id='toast'; document.body.appendChild(t); }
+            t.innerText = msg;
+            t.classList.add('mostrar');
+            setTimeout(() => t.classList.remove('mostrar'), 3000);
+        }
+
+        poblarSelects();
+        obtenerCitas();
+    </script>
+</body>
+</html>
